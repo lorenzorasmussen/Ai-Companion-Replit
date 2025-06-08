@@ -13,7 +13,7 @@ export const projects = pgTable("projects", {
   userId: integer("user_id").notNull(),
   name: text("name").notNull(),
   description: text("description"),
-  type: text("type").notNull(), // 'app', 'note', 'research'
+  type: text("type").notNull(), // 'app', 'note', 'research', 'calendar', 'email'
   content: jsonb("content").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

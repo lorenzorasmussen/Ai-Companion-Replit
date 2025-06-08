@@ -4,6 +4,8 @@ import AppBuilder from "@/components/app-builder";
 import AiNotes from "@/components/ai-notes";
 import Research from "@/components/research";
 import Templates from "@/components/templates";
+import CalendarView from "@/components/calendar";
+import EmailView from "@/components/email";
 import AiChat from "@/components/ai-chat";
 
 export default function Home() {

@@ -31,6 +31,10 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         return "📝";
       case "research":
         return "🔬";
+      case "calendar":
+        return "📅";
+      case "email":
+        return "📧";
       default:
         return "📁";
     }
@@ -44,6 +48,10 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
         return "from-purple-400 to-purple-600";
       case "research":
         return "from-orange-400 to-orange-600";
+      case "calendar":
+        return "from-indigo-400 to-indigo-600";
+      case "email":
+        return "from-cyan-400 to-cyan-600";
       default:
         return "from-blue-400 to-blue-600";
     }

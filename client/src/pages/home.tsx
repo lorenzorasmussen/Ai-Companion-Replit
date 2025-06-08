@@ -21,6 +21,10 @@ export default function Home() {
         return <Research />;
       case "templates":
         return <Templates />;
+      case "calendar":
+        return <CalendarView />;
+      case "email":
+        return <EmailView />;
       default:
         return <AppBuilder />;
     }

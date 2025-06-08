@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Code, StickyNote, Search, Layers, Settings, Circle } from "lucide-react";
+import { Code, StickyNote, Search, Layers, Settings, Circle, Calendar, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
@@ -125,6 +125,32 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           >
             <Layers className="w-4 h-4" />
             <span>Templates</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            className={`w-full justify-start gap-3 ${
+              activeTab === "calendar"
+                ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/50"
+            }`}
+            onClick={() => setActiveTab("calendar")}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Calendar</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            className={`w-full justify-start gap-3 ${
+              activeTab === "email"
+                ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                : "text-slate-400 hover:text-slate-300 hover:bg-slate-700/50"
+            }`}
+            onClick={() => setActiveTab("email")}
+          >
+            <Mail className="w-4 h-4" />
+            <span>Email</span>
           </Button>
         </div>
 

@@ -41,10 +41,40 @@ export default function CalendarView() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: events = [] } = useQuery<CalendarEvent[]>({
+  const { data: localEvents = [] } = useQuery<CalendarEvent[]>({
     queryKey: ["/api/projects"],
     select: (data) => data.filter(project => project.type === "calendar"),
   });
+
+  const { data: googleEvents = [] } = useQuery({
+    queryKey: ["/api/calendar/events"],
+    enabled: true,
+    retry: false,
+    onError: () => {
+      // Google Calendar not available, use local events only
+    }
+  });
+
+  // Combine local and Google Calendar events
+  const events = [
+    ...localEvents,
+    ...(googleEvents.map((event: any) => ({
+      id: `google-${event.id}`,
+      name: `Google: ${event.summary}`,
+      content: {
+        title: event.summary || "Untitled Event",
+        description: event.description || "",
+        date: event.start?.dateTime ? new Date(event.start.dateTime).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        time: event.start?.dateTime ? new Date(event.start.dateTime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }) : "00:00",
+        location: event.location || "",
+        attendees: event.attendees?.map((a: any) => a.email) || [],
+        type: "event" as const,
+        priority: "medium" as const,
+      },
+      type: "calendar",
+      createdAt: event.created || new Date().toISOString(),
+    })) || [])
+  ];
 
   const aiSuggestMutation = useMutation({
     mutationFn: async (eventData: string) => {

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Code, StickyNote, Search, Layers, Settings, Circle, Calendar, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import GoogleAuth from "@/components/google-auth";
 
 interface Project {
   id: number;
@@ -192,6 +193,14 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
               </p>
             )}
           </div>
+        </div>
+
+        {/* Google Integration */}
+        <div className="pt-4 mt-4 border-t border-slate-700">
+          <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">
+            Google Integration
+          </h3>
+          <GoogleAuth />
         </div>
       </nav>
 

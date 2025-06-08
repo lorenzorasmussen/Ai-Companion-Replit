@@ -6,22 +6,58 @@ import {
   type AiModel, type InsertAiModel, type Integration, type InsertIntegration
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
+  // User management
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
+  // Project management
   getProjects(userId: number): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, updates: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number): Promise<boolean>;
   
+  // Template management
   getTemplates(): Promise<Template[]>;
   getTemplate(id: number): Promise<Template | undefined>;
   createTemplate(template: InsertTemplate): Promise<Template>;
+  
+  // Conversation management
+  getConversations(userId: number, projectId?: number): Promise<Conversation[]>;
+  getConversation(id: number): Promise<Conversation | undefined>;
+  createConversation(conversation: InsertConversation): Promise<Conversation>;
+  updateConversation(id: number, updates: Partial<InsertConversation>): Promise<Conversation | undefined>;
+  deleteConversation(id: number): Promise<boolean>;
+  
+  // Message management
+  getMessages(conversationId: number): Promise<Message[]>;
+  createMessage(message: InsertMessage): Promise<Message>;
+  
+  // Document management
+  getDocuments(projectId: number): Promise<Document[]>;
+  getDocument(id: number): Promise<Document | undefined>;
+  createDocument(document: InsertDocument): Promise<Document>;
+  updateDocument(id: number, updates: Partial<InsertDocument>): Promise<Document | undefined>;
+  deleteDocument(id: number): Promise<boolean>;
+  
+  // Knowledge base management
+  getKnowledgeBase(userId: number, projectId?: number): Promise<KnowledgeBase[]>;
+  createKnowledgeBase(knowledge: InsertKnowledgeBase): Promise<KnowledgeBase>;
+  searchKnowledgeBase(query: string, userId: number, projectId?: number): Promise<KnowledgeBase[]>;
+  
+  // AI Models management
+  getAiModels(): Promise<AiModel[]>;
+  getAiModel(id: number): Promise<AiModel | undefined>;
+  createAiModel(model: InsertAiModel): Promise<AiModel>;
+  
+  // Integration management
+  getIntegrations(userId: number, projectId?: number): Promise<Integration[]>;
+  createIntegration(integration: InsertIntegration): Promise<Integration>;
+  updateIntegration(id: number, updates: Partial<InsertIntegration>): Promise<Integration | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -89,6 +125,157 @@ export class DatabaseStorage implements IStorage {
       .values(insertTemplate)
       .returning();
     return template;
+  }
+
+  // Conversation management
+  async getConversations(userId: number, projectId?: number): Promise<Conversation[]> {
+    if (projectId) {
+      return await db.select().from(conversations)
+        .where(and(eq(conversations.userId, userId), eq(conversations.projectId, projectId)));
+    }
+    return await db.select().from(conversations).where(eq(conversations.userId, userId));
+  }
+
+  async getConversation(id: number): Promise<Conversation | undefined> {
+    const [conversation] = await db.select().from(conversations).where(eq(conversations.id, id));
+    return conversation || undefined;
+  }
+
+  async createConversation(insertConversation: InsertConversation): Promise<Conversation> {
+    const [conversation] = await db
+      .insert(conversations)
+      .values(insertConversation)
+      .returning();
+    return conversation;
+  }
+
+  async updateConversation(id: number, updates: Partial<InsertConversation>): Promise<Conversation | undefined> {
+    const [conversation] = await db
+      .update(conversations)
+      .set(updates)
+      .where(eq(conversations.id, id))
+      .returning();
+    return conversation || undefined;
+  }
+
+  async deleteConversation(id: number): Promise<boolean> {
+    const result = await db.delete(conversations).where(eq(conversations.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Message management
+  async getMessages(conversationId: number): Promise<Message[]> {
+    return await db.select().from(messages).where(eq(messages.conversationId, conversationId));
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const [message] = await db
+      .insert(messages)
+      .values(insertMessage)
+      .returning();
+    return message;
+  }
+
+  // Document management
+  async getDocuments(projectId: number): Promise<Document[]> {
+    return await db.select().from(documents).where(eq(documents.projectId, projectId));
+  }
+
+  async getDocument(id: number): Promise<Document | undefined> {
+    const [document] = await db.select().from(documents).where(eq(documents.id, id));
+    return document || undefined;
+  }
+
+  async createDocument(insertDocument: InsertDocument): Promise<Document> {
+    const [document] = await db
+      .insert(documents)
+      .values(insertDocument)
+      .returning();
+    return document;
+  }
+
+  async updateDocument(id: number, updates: Partial<InsertDocument>): Promise<Document | undefined> {
+    const [document] = await db
+      .update(documents)
+      .set(updates)
+      .where(eq(documents.id, id))
+      .returning();
+    return document || undefined;
+  }
+
+  async deleteDocument(id: number): Promise<boolean> {
+    const result = await db.delete(documents).where(eq(documents.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Knowledge base management
+  async getKnowledgeBase(userId: number, projectId?: number): Promise<KnowledgeBase[]> {
+    if (projectId) {
+      return await db.select().from(knowledgeBase)
+        .where(and(eq(knowledgeBase.userId, userId), eq(knowledgeBase.projectId, projectId)));
+    }
+    return await db.select().from(knowledgeBase).where(eq(knowledgeBase.userId, userId));
+  }
+
+  async createKnowledgeBase(insertKnowledge: InsertKnowledgeBase): Promise<KnowledgeBase> {
+    const [knowledge] = await db
+      .insert(knowledgeBase)
+      .values(insertKnowledge)
+      .returning();
+    return knowledge;
+  }
+
+  async searchKnowledgeBase(query: string, userId: number, projectId?: number): Promise<KnowledgeBase[]> {
+    // Simple text search - in production, use vector embeddings
+    if (projectId) {
+      return await db.select().from(knowledgeBase)
+        .where(and(eq(knowledgeBase.userId, userId), eq(knowledgeBase.projectId, projectId)));
+    }
+    return await db.select().from(knowledgeBase).where(eq(knowledgeBase.userId, userId));
+  }
+
+  // AI Models management
+  async getAiModels(): Promise<AiModel[]> {
+    return await db.select().from(aiModels).where(eq(aiModels.isEnabled, true));
+  }
+
+  async getAiModel(id: number): Promise<AiModel | undefined> {
+    const [model] = await db.select().from(aiModels).where(eq(aiModels.id, id));
+    return model || undefined;
+  }
+
+  async createAiModel(insertModel: InsertAiModel): Promise<AiModel> {
+    const [model] = await db
+      .insert(aiModels)
+      .values(insertModel)
+      .returning();
+    return model;
+  }
+
+  // Integration management
+  async getIntegrations(userId: number, projectId?: number): Promise<Integration[]> {
+    if (projectId) {
+      return await db.select().from(integrations)
+        .where(and(eq(integrations.userId, userId), eq(integrations.projectId, projectId)));
+    }
+    return await db.select().from(integrations).where(eq(integrations.userId, userId));
+  }
+
+  async createIntegration(insertIntegration: InsertIntegration): Promise<Integration> {
+    const [integration] = await db
+      .insert(integrations)
+      .values(insertIntegration)
+      .returning();
+    return integration;
+  }
+
+  async updateIntegration(id: number, updates: Partial<InsertIntegration>): Promise<Integration | undefined> {
+    const [integration] = await db
+      .update(integrations)
+      .set(updates)
+      .where(eq(integrations.id, id))
+      .returning();
+    return integration || undefined;
   }
 }
 

@@ -95,16 +95,33 @@ export default function CalendarView() {
   const saveEventMutation = useMutation({
     mutationFn: async () => {
       const eventDate = selectedDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
-      const response = await apiRequest("POST", "/api/projects", {
-        name: newEvent.title,
-        description: `Calendar event: ${newEvent.title}`,
-        type: "calendar",
-        content: {
-          ...newEvent,
-          date: eventDate,
-        },
-      });
-      return response.json();
+      
+      // Try to create in Google Calendar first
+      try {
+        const startDateTime = `${eventDate}T${newEvent.time}:00`;
+        const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString(); // 1 hour duration
+        
+        const response = await apiRequest("POST", "/api/calendar/events", {
+          summary: newEvent.title,
+          description: newEvent.description,
+          start: { dateTime: startDateTime },
+          end: { dateTime: endDateTime },
+          location: newEvent.location,
+        });
+        return response.json();
+      } catch (error) {
+        // Fall back to local storage if Google Calendar fails
+        const response = await apiRequest("POST", "/api/projects", {
+          name: newEvent.title,
+          description: `Calendar event: ${newEvent.title}`,
+          type: "calendar",
+          content: {
+            ...newEvent,
+            date: eventDate,
+          },
+        });
+        return response.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });

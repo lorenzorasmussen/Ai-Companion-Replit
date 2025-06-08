@@ -2,8 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertProjectSchema } from "@shared/schema";
-import { generateApp } from "./lib/openai";
-import { researchTopic } from "./lib/anthropic";
+import { generateApp, performResearch } from "./lib/openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -91,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Query is required" });
       }
       
-      const result = await researchTopic(query);
+      const result = await performResearch(query);
       res.json(result);
     } catch (error) {
       console.error("Research error:", error);

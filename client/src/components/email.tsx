@@ -40,10 +40,40 @@ export default function EmailView() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: emails = [] } = useQuery<EmailItem[]>({
+  const { data: localEmails = [] } = useQuery<EmailItem[]>({
     queryKey: ["/api/projects"],
     select: (data) => data.filter(project => project.type === "email"),
   });
+
+  const { data: gmailEmails = [] } = useQuery({
+    queryKey: ["/api/gmail/emails"],
+    enabled: true,
+    retry: false,
+    onError: () => {
+      // Gmail not available, use local emails only
+    }
+  });
+
+  // Combine local and Gmail emails
+  const emails = [
+    ...localEmails,
+    ...(gmailEmails.map((email: any) => ({
+      id: `gmail-${email.id}`,
+      name: `Gmail: ${email.subject}`,
+      content: {
+        to: email.to || "",
+        from: email.from,
+        subject: email.subject,
+        body: email.body || email.snippet,
+        status: "received" as const,
+        priority: "medium" as const,
+        starred: false,
+        read: true,
+      },
+      type: "email",
+      createdAt: email.date || new Date().toISOString(),
+    })) || [])
+  ];
 
   const aiEnhanceMutation = useMutation({
     mutationFn: async (emailContent: string) => {
@@ -64,19 +94,47 @@ export default function EmailView() {
 
   const saveEmailMutation = useMutation({
     mutationFn: async (status: "draft" | "sent") => {
-      const response = await apiRequest("POST", "/api/projects", {
-        name: `Email: ${newEmail.subject}`,
-        description: `Email ${status}: ${newEmail.subject}`,
-        type: "email",
-        content: {
-          ...newEmail,
-          from: "user@aistudio.com",
-          status,
-          starred: false,
-          read: true,
-        },
-      });
-      return response.json();
+      if (status === "sent") {
+        // Try to send via Gmail first
+        try {
+          const response = await apiRequest("POST", "/api/gmail/send", {
+            to: newEmail.to,
+            subject: newEmail.subject,
+            body: newEmail.body,
+          });
+          return response.json();
+        } catch (error) {
+          // Fall back to local storage if Gmail fails
+          const response = await apiRequest("POST", "/api/projects", {
+            name: `Email: ${newEmail.subject}`,
+            description: `Email ${status}: ${newEmail.subject}`,
+            type: "email",
+            content: {
+              ...newEmail,
+              from: "user@aistudio.com",
+              status,
+              starred: false,
+              read: true,
+            },
+          });
+          return response.json();
+        }
+      } else {
+        // For drafts, always save locally
+        const response = await apiRequest("POST", "/api/projects", {
+          name: `Email: ${newEmail.subject}`,
+          description: `Email ${status}: ${newEmail.subject}`,
+          type: "email",
+          content: {
+            ...newEmail,
+            from: "user@aistudio.com",
+            status,
+            starred: false,
+            read: true,
+          },
+        });
+        return response.json();
+      }
     },
     onSuccess: (_, status) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });

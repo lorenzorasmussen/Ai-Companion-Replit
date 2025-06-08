@@ -96,3 +96,38 @@ export async function generateNoteContent(prompt: string) {
     throw new Error("Failed to generate note content");
   }
 }
+
+export async function performResearch(query: string) {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: `You are a comprehensive research assistant. Provide detailed research on the given topic.
+          Return your response in JSON format with:
+          {
+            "summary": "Executive summary of findings (2-3 paragraphs)",
+            "keyPoints": ["Array of 5-7 key findings or important points"],
+            "sources": ["List of 4-6 suggested sources to investigate further"],
+            "insights": ["3-5 analytical insights or implications"],
+            "relatedTopics": ["5-8 related research areas or topics"]
+          }
+          
+          Focus on providing factual, well-researched information with actionable insights.`
+        },
+        {
+          role: "user",
+          content: `Please research this topic comprehensively: ${query}`
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 2500
+    });
+
+    return JSON.parse(response.choices[0].message.content || "{}");
+  } catch (error) {
+    console.error("OpenAI research error:", error);
+    throw new Error("Failed to perform research");
+  }
+}

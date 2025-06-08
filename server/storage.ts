@@ -1,4 +1,10 @@
-import { users, projects, templates, type User, type InsertUser, type Project, type InsertProject, type Template, type InsertTemplate } from "@shared/schema";
+import { 
+  users, projects, templates, conversations, messages, documents, knowledgeBase, aiModels, integrations,
+  type User, type InsertUser, type Project, type InsertProject, type Template, type InsertTemplate,
+  type Conversation, type InsertConversation, type Message, type InsertMessage,
+  type Document, type InsertDocument, type KnowledgeBase, type InsertKnowledgeBase,
+  type AiModel, type InsertAiModel, type Integration, type InsertIntegration
+} from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 

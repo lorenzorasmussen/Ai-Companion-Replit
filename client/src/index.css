@@ -2,6 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first responsive optimizations */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    font-feature-settings: "rlig" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Touch targets for accessibility */
+  button, 
+  input[type="button"], 
+  input[type="submit"], 
+  [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Focus indicators for accessibility */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .bg-slate-800 {
+      background-color: #000000;
+    }
+    .text-slate-400 {
+      color: #ffffff;
+    }
+    .border-slate-700 {
+      border-color: #ffffff;
+    }
+  }
+}
+
+/* Mobile-specific styles */
+@layer components {
+  .mobile-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .mobile-sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .mobile-overlay {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+  
+  /* Touch-friendly spacing */
+  .touch-friendly {
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+  
+  /* Safe areas for notched devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 :root {
   --background: hsl(222, 84%, 5%);
   --foreground: hsl(210, 40%, 98%);
